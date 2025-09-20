@@ -1,129 +1,139 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import products from "./products";
+import "./App.css";
 
 function App() {
-  const [cart, setCart] = useState([]);
+  // 🛒 Cart state with localStorage persistence
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState("All");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const categories = ["All", ...new Set(products.map((p) => p.category))];
 
   const addToCart = (product) => {
-    setCart([...cart, product]);
+    const existingItem = cart.find((item) => item.id === product.id);
+    if (existingItem) {
+      setCart(
+        cart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      );
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
   };
 
-  const removeFromCart = (index) => {
+  const increaseQuantity = (index) => {
     const newCart = [...cart];
-    newCart.splice(index, 1);
+    newCart[index].quantity += 1;
     setCart(newCart);
   };
 
-  const headerStyle = {
-    backgroundColor: "#1976d2",
-    color: "white",
-    padding: "20px",
-    textAlign: "center",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
+  const decreaseQuantity = (index) => {
+    const newCart = [...cart];
+    if (newCart[index].quantity > 1) {
+      newCart[index].quantity -= 1;
+    } else {
+      newCart.splice(index, 1);
+    }
+    setCart(newCart);
   };
 
-  const buttonStyle = {
-    backgroundColor: "#1976d2",
-    color: "white",
-    padding: "8px 12px",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    transition: "background 0.3s"
-  };
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = category === "All" || product.category === category;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* Header */}
-      <header style={headerStyle}>
-        <h1 style={{ margin: 0 }}>Gokul-kun’s E-Commerce</h1>
-        <p style={{ margin: "5px 0 0" }}>A clean and modern storefront</p>
-        <h3 style={{ marginTop: "10px" }}>Cart Items: {cart.length}</h3>
-      </header>
+    <div className="app-container">
+      {/* Navbar */}
+      <nav className="navbar">
+        <div className="navbar-brand">Gokul-kun’s Shop</div>
+        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+          ☰
+        </button>
+        <div className={`nav-links ${menuOpen ? "open" : ""}`}>
+          <a href="#">Home</a>
+          <a href="#">Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})</a>
+          <a href="#">About</a>
+        </div>
+      </nav>
 
-      {/* Products */}
-      <main style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "center", padding: "30px" }}>
-        {products.map((product) => (
-          <div
-            key={product.id}
-            style={{
-              backgroundColor: "white",
-              borderRadius: "8px",
-              padding: "15px",
-              width: "220px",
-              textAlign: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              transition: "transform 0.2s"
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          >
-            <img src={product.image} alt={product.name} style={{ width: "100%", borderRadius: "6px" }} />
-            <h2 style={{ fontSize: "18px", margin: "10px 0" }}>{product.name}</h2>
-            <p style={{ color: "#388e3c", fontWeight: "bold", margin: "8px 0" }}>₹{product.price}</p>
-            <button
-              style={buttonStyle}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#1565c0")}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#1976d2")}
-              onClick={() => addToCart(product)}
-            >
-              Add to Cart
-            </button>
-          </div>
-        ))}
+      {/* Featured Banner */}
+      <section className="banner">
+        <h1>Welcome to Gokul-kun’s E-Commerce</h1>
+        <p>Your one-stop shop for amazing products ✨</p>
+      </section>
+
+      {/* Search and Category Filter */}
+      <div className="filters">
+        <input
+          type="text"
+          placeholder="🔎 Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          {categories.map((cat, idx) => (
+            <option key={idx} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Products Grid */}
+      <main className="products-grid">
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <div key={product.id} className="product-card">
+              <img src={product.image} alt={product.name} />
+              <h2>{product.name}</h2>
+              <p>₹{product.price}</p>
+              <button onClick={() => addToCart(product)}>Add to Cart</button>
+            </div>
+          ))
+        ) : (
+          <p className="no-products">No products found.</p>
+        )}
       </main>
 
       {/* Cart */}
       {cart.length > 0 && (
-        <section
-          style={{
-            maxWidth: "500px",
-            margin: "20px auto",
-            backgroundColor: "white",
-            padding: "20px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-          }}
-        >
-          <h2 style={{ textAlign: "center", color: "#1976d2" }}>Your Cart</h2>
-          <ul style={{ listStyle: "none", padding: 0 }}>
+        <section className="cart-section">
+          <h2>Your Cart</h2>
+          <ul>
             {cart.map((item, index) => (
-              <li
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 0",
-                  borderBottom: "1px solid #ddd"
-                }}
-              >
-                {item.name} - ₹{item.price}
-                <button
-                  style={{ ...buttonStyle, backgroundColor: "#e53935" }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#c62828")}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#e53935")}
-                  onClick={() => removeFromCart(index)}
-                >
-                  Remove
-                </button>
+              <li key={item.id}>
+                <span>
+                  {item.name} - ₹{item.price} × {item.quantity}
+                </span>
+                <div>
+                  <button onClick={() => increaseQuantity(index)}>➕</button>
+                  <button onClick={() => decreaseQuantity(index)}>➖</button>
+                </div>
               </li>
             ))}
           </ul>
+          <h3>
+            Total: ₹
+            {cart.reduce((total, item) => total + item.price * item.quantity, 0)}
+          </h3>
         </section>
       )}
 
       {/* Footer */}
-      <footer
-        style={{
-          textAlign: "center",
-          padding: "15px",
-          backgroundColor: "#1976d2",
-          color: "white",
-          marginTop: "20px",
-          boxShadow: "0 -2px 6px rgba(0,0,0,0.1)"
-        }}
-      >
+      <footer className="footer">
         © {new Date().getFullYear()} Gokul-kun’s Shop. Built with ❤️ and React.
       </footer>
     </div>
