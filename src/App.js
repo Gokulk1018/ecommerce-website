@@ -1,9 +1,12 @@
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { useState, useEffect } from "react";
 import products from "./products";
 import Checkout from "./Checkout";
+import Login from "./Login";
+import Register from "./Register";
+import Profile from "./Profile";
+import About from "./About";
 import "./App.css";
 
 function App() {
@@ -27,23 +30,24 @@ function App() {
     if (existingItem) {
       setCart(
         cart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         )
       );
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+  };
 
-    // Cart bounce animation
-    const cartLink = document.querySelector(".nav-links a:nth-child(2)");
-    if (cartLink) {
-      cartLink.classList.add("cart-bounce");
-      setTimeout(() => cartLink.classList.remove("cart-bounce"), 600);
-    }
+  const removeFromCart = (id) => {
+    setCart(cart.filter((item) => item.id !== id));
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesCategory = category === "All" || product.category === category;
     return matchesSearch && matchesCategory;
   });
@@ -51,7 +55,6 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        {/* Navbar */}
         <nav className="navbar">
           <div className="navbar-brand">Gokul-kun’s Shop</div>
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
@@ -62,7 +65,10 @@ function App() {
             <Link to="/checkout">
               Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
             </Link>
-            <a href="#">About</a>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+            <Link to="/profile">Profile</Link>
+            <Link to="/about">About</Link>
           </div>
         </nav>
 
@@ -71,13 +77,11 @@ function App() {
             path="/"
             element={
               <>
-                {/* Banner */}
                 <section className="banner">
                   <h1>Welcome to Gokul-kun’s E-Commerce</h1>
                   <p>Your one-stop shop for amazing products ✨</p>
                 </section>
 
-                {/* Filters */}
                 <div className="filters">
                   <input
                     type="text"
@@ -85,7 +89,10 @@ function App() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
                     {categories.map((cat, idx) => (
                       <option key={idx} value={cat}>
                         {cat}
@@ -94,7 +101,6 @@ function App() {
                   </select>
                 </div>
 
-                {/* Products Grid */}
                 <main className="products-grid">
                   {filteredProducts.length > 0 ? (
                     filteredProducts.map((product) => (
@@ -102,21 +108,36 @@ function App() {
                         <img src={product.image} alt={product.name} />
                         <h2>{product.name}</h2>
                         <p>₹{product.price}</p>
-                        <button onClick={() => addToCart(product)}>Add to Cart</button>
+                        <button onClick={() => addToCart(product)}>
+                          Add to Cart
+                        </button>
                       </div>
                     ))
                   ) : (
-                    <p className="no-products">No products found.</p>
+                    <p>No products found.</p>
                   )}
                 </main>
               </>
             }
           />
-          <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />} />
+          <Route
+            path="/checkout"
+            element={
+              <Checkout
+                cart={cart}
+                setCart={setCart}
+                removeFromCart={removeFromCart}
+              />
+            }
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
         </Routes>
+
         <ToastContainer position="top-center" autoClose={3000} />
 
-        {/* Footer */}
         <footer className="footer">
           © {new Date().getFullYear()} Gokul-kun’s Shop. Built with ❤️ and React.
         </footer>
@@ -126,3 +147,4 @@ function App() {
 }
 
 export default App;
+  
