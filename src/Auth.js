@@ -1,6 +1,4 @@
 // src/Auth.js
-// Simple localStorage-based auth helper
-
 export const saveUser = (user) => {
   localStorage.setItem("user", JSON.stringify(user));
 };
@@ -12,4 +10,8 @@ export const getUser = () => {
 
 export const logoutUser = () => {
   localStorage.removeItem("user");
+};
+
+export const isLoggedIn = () => {
+  return !!localStorage.getItem("user");
 };

@@ -1,10 +1,11 @@
-// src/Register.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { saveUser } from "./Auth"; // ✅ Match casing exactly
+import { saveUser } from "./Auth";
+import "./Auth.css";
 
 const Register = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,7 +13,7 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       toast.error("Please fill in all fields.");
       return;
     }
@@ -20,8 +21,8 @@ const Register = () => {
       toast.error("Passwords do not match!");
       return;
     }
-    // Simulate registration success
-    saveUser({ email });
+
+    saveUser({ name, email });
     toast.success("Registration successful!");
     navigate("/profile");
   };
@@ -30,6 +31,15 @@ const Register = () => {
     <div className="auth-container">
       <h2>Register</h2>
       <form className="auth-form" onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your name"
+          />
+        </label>
         <label>
           Email:
           <input

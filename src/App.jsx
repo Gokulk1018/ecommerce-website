@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import products from "./products";
 import Checkout from "./Checkout";
+import FeaturedCarousel from "./FeaturedCarousel";
 import Login from "./Login";
 import Register from "./Register";
 import Profile from "./Profile";
@@ -15,13 +17,13 @@ function App() {
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("All");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
 
   const categories = ["All", ...new Set(products.map((p) => p.category))];
 
@@ -56,6 +58,7 @@ function App() {
     <Router>
       <div className="app-container">
         <nav className="navbar">
+          
           <div className="navbar-brand">Gokul-kun’s Shop</div>
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
             ☰
@@ -71,7 +74,7 @@ function App() {
             <Link to="/about">About</Link>
           </div>
         </nav>
-
+<FeaturedCarousel />
         <Routes>
           <Route
             path="/"
@@ -103,15 +106,26 @@ function App() {
 
                 <main className="products-grid">
                   {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product) => (
-                      <div key={product.id} className="product-card">
+                    filteredProducts.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        className="product-card"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          delay: index * 0.1,
+                          duration: 0.4,
+                          ease: "easeOut",
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                      >
                         <img src={product.image} alt={product.name} />
                         <h2>{product.name}</h2>
                         <p>₹{product.price}</p>
                         <button onClick={() => addToCart(product)}>
                           Add to Cart
                         </button>
-                      </div>
+                      </motion.div>
                     ))
                   ) : (
                     <p>No products found.</p>
@@ -147,4 +161,3 @@ function App() {
 }
 
 export default App;
-  

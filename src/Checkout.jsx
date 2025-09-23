@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
-function Checkout({ cart, removeFromCart }) {
+function Checkout({ cart, removeFromCart, setCart }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const navigate = useNavigate();
 
   const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -14,7 +16,23 @@ function Checkout({ cart, removeFromCart }) {
       alert("Please fill in all details!");
       return;
     }
-    alert(`Thank you, ${name}! Your order has been placed successfully.`);
+
+    // Save order to order history in localStorage
+    const orderHistory = JSON.parse(localStorage.getItem("orderHistory")) || [];
+    const newOrder = {
+      id: Date.now(),
+      name,
+      email,
+      address,
+      total,
+      date: new Date().toLocaleString(),
+      items: cart,
+    };
+    localStorage.setItem("orderHistory", JSON.stringify([newOrder, ...orderHistory]));
+
+    // Clear cart
+    setCart([]);
+    navigate("/payment-success");
   };
 
   return (
@@ -29,7 +47,9 @@ function Checkout({ cart, removeFromCart }) {
             <li key={item.id} className="checkout-item">
               <div className="checkout-info">
                 <span>{item.name}</span>
-                <span>₹{item.price} × {item.quantity}</span>
+                <span>
+                  ₹{item.price} × {item.quantity}
+                </span>
               </div>
               <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
                 ✖ Remove
